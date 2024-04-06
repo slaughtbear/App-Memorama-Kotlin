@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/restartBtn"
+        android:title="@string/restart" />
+    <item android:id="@+id/endBtn"
+        android:title="@string/end" />
+    <item android:id="@+id/exitBtn"
+        android:title="@string/exit" />
+</menu>

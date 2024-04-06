@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Memorama</string>
+    <string name="message">Boton de inicio</string>
+    <string name="restart">Reiniciar</string>
+    <string name="end">Terminar</string>
+    <string name="exit">Salir</string>
+    <string name="hard_coded">NULL</string>
+    <string name="cancel">cancelar</string>
+    <string name="player1">Jugador 1</string>
+    <string name="player2">Jugador 2</string>
+    <string name="points_0">Puntos: 0</string>
+    <string name="continuar">Continuar</string>
+    <string name="newgame">Nuevo juego</string>
+</resources>
