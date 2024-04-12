@@ -102,55 +102,61 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun saveClick(img:ImageView, card:Int) {
-        if(clicked){
+
+    private fun saveClick(img: ImageView, card: Int) {
+        if(clicked) {
             first_card = img
             first_image = card
             first_card!!.isEnabled = false
-            clicked=!clicked
-        }
-        else{
+            clicked = !clicked
+        } else {
             xtivate(false)
             var handler = Handler(Looper.getMainLooper())
             handler.postDelayed({
-                if(card == first_image){
-                    if(turno){
+                if (card == first_image) {
+                    if (turno) {
                         score1 += 1
                         binding!!.scoreZone.mainActivityTvScorePlayer1.text = "Puntos: $score1"
-                    }
-                    else{
+                    } else {
                         score2 += 1
                         binding!!.scoreZone.mainActivityTvScorePlayer2.text = "Puntos: $score2"
                     }
                     first_card!!.isVisible = false
                     img.isVisible = false
-                    if(endGame()){
-                        if(score1>score2){
-                            showDialogAlertSimple("Ganador!","¡Ganó el jugador 1!")
-                        }
-                        else if(score2>score1){
-                            showDialogAlertSimple("Ganador!","¡Ganó el jugador 2!")
-                        }
-                        else if(score1==score2){
-                            showDialogAlertSimple("Nadie ha ganado","¡Empate!")
-                        }
-                    }
-                    else{
+                    if (endGame()) {
+                        // Si se termina el juego, muestra el cuadro de diálogo con los resultados
+                        showResultDialog()
+                    } else {
+                        // Si no se termina el juego, reinicia el estado del juego
                         startOn()
                         xtivate(true)
                     }
-                }
-                else{
+                } else {
+                    // Si las cartas no coinciden, voltean las cartas nuevamente y cambia el turno
                     first_card!!.setImageResource(R.drawable.reverso)
-                    img!!.setImageResource(R.drawable.reverso)
+                    img.setImageResource(R.drawable.reverso)
                     first_card!!.isEnabled = true
                     turno = !turno
                     startOn()
                     xtivate(true)
                 }
-            }, 2000)
+            }, 1000) // Retraso de 1 segundo antes de realizar la evaluación
             clicked = !clicked
         }
+    }
+
+    private fun showResultDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Resultados")
+            .setMessage("Jugador 1: $score1 \nJugador 2: $score2")
+            .setPositiveButton(getString(R.string.newgame)) { _, _ ->
+                restart()
+            }
+            .setNegativeButton(getString(R.string.exit)) { _, _ ->
+                exit()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     private fun xtivate(b: Boolean) {
@@ -158,14 +164,66 @@ class MainActivity : AppCompatActivity() {
             images!![i]!!.isEnabled = b
         }
     }
-    private fun endGame():Boolean{
-        for (i in (0..<images!!.size)){
-            if(images!![i].isVisible){
-                return false
+    private fun endGame(): Boolean {
+        val visibleCardsCount = images!!.count { it.isVisible }
+        if (visibleCardsCount == 2) { // Si sólo queda un par de cartas
+            AlertDialog.Builder(this)
+                .setTitle("¡Último par!")
+                .setMessage("Sólo queda un par de cartas. ¿Desea terminar el juego?")
+                .setPositiveButton("Sí") { _, _ ->
+                    // Mostrar el último par por un segundo antes de terminar el juego
+                    showLastPairForASecondAndFinishGame()
+                }
+                .setNegativeButton("No", null)
+                .show()
+            return false // No termina el juego
+        }
+        return visibleCardsCount == 0 // Todas las cartas están emparejadas
+    }
+
+    private fun showLastPairForASecondAndFinishGame() {
+        // Mostrar las dos últimas cartas por un segundo
+        images!!.forEachIndexed { index, imageView ->
+            if (imageView.isVisible) {
+                imageView.setImageResource(deck[index]) // Mostrar la imagen real
             }
         }
-        return true
+
+        // Esperar un segundo antes de ocultar las cartas y mostrar el diálogo
+        Handler(Looper.getMainLooper()).postDelayed({
+            // Después de un segundo, ocultar las cartas nuevamente
+            images!!.forEach { it.setImageResource(R.drawable.reverso) }
+
+            // Sumar un punto al jugador en turno
+            if (turno) {
+                score1 += 1
+                binding!!.scoreZone.mainActivityTvScorePlayer1.text = "Puntos: $score1"
+            } else {
+                score2 += 1
+                binding!!.scoreZone.mainActivityTvScorePlayer2.text = "Puntos: $score2"
+            }
+
+            // Mostrar el cuadro de diálogo preguntando si se desea realizar un nuevo juego o terminar
+            showNewGameOrExitDialog()
+        }, 1000)
     }
+
+    private fun showNewGameOrExitDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Juego terminado")
+            .setMessage("¿Desea realizar un nuevo juego?")
+            .setPositiveButton("Sí") { _, _ ->
+                // Si el usuario desea un nuevo juego, reiniciar el juego
+                restart()
+            }
+            .setNegativeButton("No") { _, _ ->
+                // Si el usuario no desea un nuevo juego, salir del juego
+                exit()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
     private fun makeVisible(){
         for (i in (0..<images!!.size)){
             images!![i]!!.isVisible = true
@@ -208,16 +266,12 @@ class MainActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Resultados")
             .setMessage("Jugador 1: $score1 \nJugador 2: $score2")
-            .setPositiveButton(
-                getString(R.string.newgame),
-                DialogInterface.OnClickListener { _, _ ->
-                    restart()
-                })
-            .setNegativeButton(
-                getString(R.string.exit),
-                DialogInterface.OnClickListener { _, _ ->
-                    exit()
-                })
+            .setPositiveButton(getString(R.string.newgame)) { _, _ ->
+                restart()
+            }
+            .setNegativeButton(getString(R.string.exit)) { _, _ ->
+                exit()
+            }
             .setCancelable(false)
             .show()
     }
